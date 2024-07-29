@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        AZURE_CREDENTIALS = credentials('azure-service-principal')
+        AZURE_CREDENTIALS = credentials('asp')
     }
 
     parameters {
