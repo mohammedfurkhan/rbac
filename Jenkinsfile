@@ -1,49 +1,76 @@
 pipeline {
-    agent any // Use 'any' to run on any available agent
-
+    agent any
+    
     environment {
         AZURE_CREDENTIALS = credentials('asp')
     }
-
+    
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                git url: 'https://github.com/mohammedfurkhan/rbac.git', branch: 'main'
+                // Clone your repository containing Terraform/ARM templates
+                checkout([$class: 'GitSCM', 
+                          branches: [[name: '*/main']], 
+                          userRemoteConfigs: [[url: 'https://github.com/mohammedfurkhan/rbac.git']]])
             }
         }
+        
+        stage('Install Terraform') {
+            steps {
+                script {
+                    // Ensure Terraform is installed
+                    bat 'terraform --version'
+                }
+            }
+        }
+        
         stage('Terraform Init') {
             steps {
                 script {
+                    // Initialize Terraform
                     bat 'terraform init'
                 }
             }
         }
+        
         stage('Terraform Plan') {
             steps {
                 script {
-                    bat 'terraform plan -var "principal_id=1b4532b9-6e2e-41b6-8161-6ddc3dd1c740" -var "policy_definition_id=/providers/Microsoft.Authorization/policyDefinitions/4f9dc7db-30c1-420c-b61a-e1d640128d26"'
+                    // Generate a Terraform plan
+                    bat 'terraform plan -out=tfplan'
                 }
             }
         }
+        
         stage('Terraform Apply') {
             steps {
                 script {
-                    bat 'terraform apply -var "principal_id=1b4532b9-6e2e-41b6-8161-6ddc3dd1c740" -var "policy_definition_id=/providers/Microsoft.Authorization/policyDefinitions/4f9dc7db-30c1-420c-b61a-e1d640128d26" -auto-approve'
+                    // Apply the Terraform plan
+                    bat 'terraform apply -auto-approve tfplan'
                 }
             }
         }
-        stage('Compliance Validation') {
+        
+        stage('Clean Up') {
             steps {
                 script {
-                    bat 'terraform validate'
+                    // Clean up the Terraform workspace
+                    bat 'terraform workspace delete -force'
                 }
             }
         }
     }
-
+    
     post {
         always {
-            cleanWs()
+            // Archive Terraform plan if needed
+            archiveArtifacts artifacts: '**/*.tfplan', allowEmptyArchive: true
+        }
+        success {
+            echo 'Deployment Successful'
+        }
+        failure {
+            echo 'Deployment Failed'
         }
     }
 }
