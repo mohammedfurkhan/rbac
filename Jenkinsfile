@@ -1,5 +1,5 @@
 pipeline {
-    agent any // Use 'any' to run on any available agent
+    agent any
 
     environment {
         AZURE_CREDENTIALS = credentials('asp')
@@ -44,6 +44,9 @@ pipeline {
     post {
         always {
             cleanWs()
+        }
+        failure {
+            echo 'Pipeline failed. Please check the logs for details.'
         }
     }
 }
