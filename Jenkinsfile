@@ -1,57 +1,41 @@
 pipeline {
-    agent any
+    agent any // Use 'any' to run on any available agent
 
     environment {
         AZURE_CREDENTIALS = credentials('asp')
     }
 
-    parameters {
-        string(name: 'PRINCIPAL_ID', defaultValue: '', description: 'The principal ID for role assignment')
-        string(name: 'POLICY_DEFINITION_ID', defaultValue: '', description: 'The policy definition ID')
-    }
-
     stages {
         stage('Checkout') {
             steps {
-                node {
-                    // Checkout code from SCM
-                    git url: 'https://github.com/mohammedfurkhan/rbac.git', branch: 'main'
-                }
+                git url: 'https://github.com/mohammedfurkhan/rbac.git', branch: 'main'
             }
         }
         stage('Terraform Init') {
             steps {
-                node {
-                    script {
-                        sh 'terraform init'
-                    }
+                script {
+                    sh 'terraform init'
                 }
             }
         }
         stage('Terraform Plan') {
             steps {
-                node {
-                    script {
-                        sh 'terraform plan -var "principal_id=${params.PRINCIPAL_ID}" -var "policy_definition_id=${params.POLICY_DEFINITION_ID}"'
-                    }
+                script {
+                    sh 'terraform plan -var "principal_id=YOUR_PRINCIPAL_ID" -var "policy_definition_id=YOUR_POLICY_DEFINITION_ID"'
                 }
             }
         }
         stage('Terraform Apply') {
             steps {
-                node {
-                    script {
-                        sh 'terraform apply -var "principal_id=${params.PRINCIPAL_ID}" -var "policy_definition_id=${params.POLICY_DEFINITION_ID}" -auto-approve'
-                    }
+                script {
+                    sh 'terraform apply -var "principal_id=YOUR_PRINCIPAL_ID" -var "policy_definition_id=YOUR_POLICY_DEFINITION_ID" -auto-approve'
                 }
             }
         }
         stage('Compliance Validation') {
             steps {
-                node {
-                    script {
-                        sh 'terraform validate'
-                    }
+                script {
+                    sh 'terraform validate'
                 }
             }
         }
@@ -59,9 +43,7 @@ pipeline {
 
     post {
         always {
-            node {
-                cleanWs()
-            }
+            cleanWs()
         }
     }
 }
