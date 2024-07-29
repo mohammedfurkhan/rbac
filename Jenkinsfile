@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent any // Use 'any' to run on any available agent
 
     environment {
         AZURE_CREDENTIALS = credentials('asp')
@@ -21,14 +21,14 @@ pipeline {
         stage('Terraform Plan') {
             steps {
                 script {
-                    bat 'terraform plan -var "principal_id=YOUR_PRINCIPAL_ID" -var "policy_definition_id=YOUR_POLICY_DEFINITION_ID"'
+                    bat 'terraform plan -var "principal_id=1b4532b9-6e2e-41b6-8161-6ddc3dd1c740" -var "policy_definition_id=/providers/Microsoft.Authorization/policyDefinitions/4f9dc7db-30c1-420c-b61a-e1d640128d26"'
                 }
             }
         }
         stage('Terraform Apply') {
             steps {
                 script {
-                    bat 'terraform apply -var "principal_id=YOUR_PRINCIPAL_ID" -var "policy_definition_id=YOUR_POLICY_DEFINITION_ID" -auto-approve'
+                    bat 'terraform apply -var "principal_id=1b4532b9-6e2e-41b6-8161-6ddc3dd1c740" -var "policy_definition_id=/providers/Microsoft.Authorization/policyDefinitions/4f9dc7db-30c1-420c-b61a-e1d640128d26" -auto-approve'
                 }
             }
         }
@@ -44,9 +44,6 @@ pipeline {
     post {
         always {
             cleanWs()
-        }
-        failure {
-            echo 'Pipeline failed. Please check the logs for details.'
         }
     }
 }
